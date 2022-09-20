@@ -6,6 +6,7 @@ from fractions import Fraction
 # (11, True) is single A
 # (10, True) is single 10
 bj_val = 1.5
+allow_split = True
 
 def transition(state, card):
     card = 10 if card > 10 else card
@@ -55,16 +56,16 @@ for s in states:
         if ds[0] > 21:
             ev[s][ds] = 1
         elif ds[0] >= 17:
-            if ds[0] > s[0]:
+            if ds == (21, True) and s == (21, True):
+                ev[s][ds] = 0
+            elif ds == (21, True):
+                ev[s][ds] = -1
+            elif s == (21, True):
+                ev[s][ds] = bj_val
+            elif ds[0] > s[0]:
                 ev[s][ds] = -1
             elif ds[0] < s[0]:
                 ev[s][ds] = 1
-            elif ds[0] != 21:
-                ev[s][ds] = 0
-            elif ds[1] and not s[1]:
-                ev[s][ds] = -1
-            elif not ds[1] and s[1]:
-                ev[s][ds] = bj_val
             else:
                 ev[s][ds] = 0
         else:
@@ -106,8 +107,11 @@ for i in range(1, 14):
         for k in range(1, 14):
             ds = state_of_card(i)
             s = state_of_card(j)
-            s = transition(s, k)
-            total_ev += Fraction(1, 13**3) * ev2[s][ds]
+            s2 = transition(s, k)
+            if not allow_split:
+                total_ev += Fraction(1, 13**3) * ev2[s2][ds]
+            else:
+                total_ev += Fraction(1, 13**3) * ev2[s2][ds]
 
 # Step 4: Display what we found
 from prettytable import PrettyTable
