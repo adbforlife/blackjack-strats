@@ -134,10 +134,8 @@ for s in states:
 # Step 3: What is overall EV?
 total_ev = 0
 for i in range(1, 14):
-    for j in range(1, 14):
-        ds = state_of_card(i)
-        s = state_of_card(j)
-        total_ev += Fraction(1, 13**2) * ev2[s][ds]
+    ds = state_of_card(i)
+    total_ev += Fraction(1, 13) * ev2[(0, False)][ds]
 
 # Step 4: Display what we found
 from prettytable import PrettyTable
