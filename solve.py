@@ -9,6 +9,7 @@ from fractions import Fraction
 # (0, False) is initial state
 bj_val = 1.5
 allow_split = True
+allow_double = True
 
 # Step 0: Set up all states and transition function
 def state_of_card(card):
@@ -91,10 +92,19 @@ for s in states:
                 new_s = transition(ds, card)
                 ev[s][ds] += Fraction(1,13) * ev[s][new_s]
 
-# Step 2: EV for player when player allowed to hit
+# Step 2: Doubles
+dev = {s : {ds : 0 for ds in states} for s in states}
+for s in states:
+    for ds in states:
+        for card in range(1, 14):
+            new_s = transition(s, card)
+            dev[s][ds] += Fraction(2, 13) * ev[new_s][ds]
+
+# Step 3: EV for player when player allowed to hit
 ev2 = {s : {ds : 0 for ds in states} for s in states}
 actions = {s : {ds : 0 for ds in states} for s in states} # 0 for hit
 splits = {i : {ds : 0 for ds in states} for i in range(1, 11)} # 0 for split
+doubles = {s : {ds : 0 for ds in states} for s in states} # 0 for double
 
 for s in states:
     for ds in states:
@@ -111,13 +121,19 @@ for s in states:
                 # Or if face card EV(s, ds) = 8/13 EV(s, ds) + ...
                 if card != 10:
                     split_ev = hit_ev * Fraction(13, 11)
-                    no_split_ev = hit_ev + Fraction(1, 13) * ev2[new_s][ds]
+                    if allow_double:
+                        no_split_ev = hit_ev + Fraction(1, 13) * max(dev[new_s][ds], ev2[new_s][ds])
+                    else:
+                        no_split_ev = hit_ev + Fraction(1, 13) * ev2[new_s][ds]
                     if card == 8:
                         print(s, ds)
                         print(round(hit_ev, 3), round(split_ev, 3), round(no_split_ev, 3))
                 else:
                     split_ev = hit_ev * Fraction(13, 5)
-                    no_split_ev = hit_ev + Fraction(4, 13) * ev2[new_s][ds]
+                    if allow_double:
+                        no_split_ev = hit_ev + Fraction(4, 13) * max(dev[new_s][ds], ev2[new_s][ds])
+                    else:
+                        no_split_ev = hit_ev + Fraction(4, 13) * ev2[new_s][ds]
 
                 if split_ev > no_split_ev:
                     splits[card][ds] = 0
@@ -127,17 +143,20 @@ for s in states:
                     hit_ev = no_split_ev
                 break
             else:
-                hit_ev += Fraction(1,13) * ev2[new_s][ds]
+                if allow_double and s[1] and s[0] <= 11:
+                    hit_ev += Fraction(1,13) * max(dev[new_s][ds], ev2[new_s][ds])
+                else:
+                    hit_ev += Fraction(1,13) * ev2[new_s][ds]
         actions[s][ds] = 0 if hit_ev > stay_ev else 1
         ev2[s][ds] = max(hit_ev, stay_ev)
 
-# Step 3: What is overall EV?
+# Step 4: What is overall EV?
 total_ev = 0
 for i in range(1, 14):
     ds = state_of_card(i)
     total_ev += Fraction(1, 13) * ev2[(0, False)][ds]
 
-# Step 4: Display what we found
+# Step 5: Display what we found
 from prettytable import PrettyTable
 def string_of_state(s):
     if s[0] > 21:
@@ -150,7 +169,7 @@ def string_of_state(s):
         return str(s[0])
 
 dealer_states = [(i, True) for i in range(2,12)[::-1]]
-player_states = [(i, False) for i in range(3, 22)[::-1]] + [(i, True) for i in range(11, 21)[::-1]]
+player_states = [(i, False) for i in range(3,22)[::-1]] + [(i, True) for i in range(11, 21)[::-1]]
 # EV table
 t = PrettyTable(['EV'] + list(map(string_of_state, dealer_states)))
 for s in player_states:
@@ -161,7 +180,15 @@ print()
 # Action table
 t = PrettyTable(['Action'] + list(map(string_of_state, dealer_states)))
 for s in player_states:
-    t.add_row([string_of_state(s)] + ['S' if actions[s][ds] else 'H' for ds in dealer_states])
+    vals = []
+    for ds in dealer_states:
+        if allow_double and dev[s][ds] > ev2[s][ds]:
+            vals.append('D')
+        elif actions[s][ds]:
+            vals.append('S')
+        else:
+            vals.append('H')
+    t.add_row([string_of_state(s)] + vals)
 print(t)
 print()
 
@@ -169,7 +196,7 @@ print()
 t = PrettyTable(['Split'] + list(map(string_of_state, dealer_states)))
 for i in range(1, 11)[::-1]:
     s = state_of_card(i)
-    t.add_row([f'{i}+{i}'] + ['NS' if splits[i][ds] else 'SP' for ds in dealer_states])
+    t.add_row([f'{i}+{i}'] + ['N' if splits[i][ds] else 'S' for ds in dealer_states])
 if allow_split:
     print(t)
     print()
