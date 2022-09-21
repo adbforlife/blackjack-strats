@@ -13,14 +13,14 @@ allow_double = True
 
 # Step 0: Set up all states and transition function
 def state_of_card(card):
-    card = 10 if card > 10 else card
+    card = min(card, 10)
     if card == 1:
         return (11, True)
     else:
         return (card, True)
 
 def transition(state, card):
-    card = 10 if card > 10 else card
+    card = min(card, 10)
     if state == (0, False):
         return state_of_card(card)
     val, is_soft = state
@@ -104,7 +104,6 @@ for s in states:
 ev2 = {s : {ds : 0 for ds in states} for s in states}
 actions = {s : {ds : 0 for ds in states} for s in states} # 0 for hit
 splits = {i : {ds : 0 for ds in states} for i in range(1, 11)} # 0 for split
-doubles = {s : {ds : 0 for ds in states} for s in states} # 0 for double
 
 for s in states:
     for ds in states:
@@ -125,9 +124,6 @@ for s in states:
                         no_split_ev = hit_ev + Fraction(1, 13) * max(dev[new_s][ds], ev2[new_s][ds])
                     else:
                         no_split_ev = hit_ev + Fraction(1, 13) * ev2[new_s][ds]
-                    if card == 8:
-                        print(s, ds)
-                        print(round(hit_ev, 3), round(split_ev, 3), round(no_split_ev, 3))
                 else:
                     split_ev = hit_ev * Fraction(13, 5)
                     if allow_double:
@@ -165,11 +161,15 @@ def string_of_state(s):
         return 'BJ'
     elif s[1] == 1 and s[0] >= 11:
         return f'{s[0]-10}/{s[0]}'
+    elif s[1] == 1:
+        return '{' + str(s[0]) + '}'
     else:
         return str(s[0])
 
 dealer_states = [(i, True) for i in range(2,12)[::-1]]
-player_states = [(i, False) for i in range(3,22)[::-1]] + [(i, True) for i in range(11, 21)[::-1]]
+player_states = [(i, False) for i in range(3,22)[::-1]] + [(i, True) for i in range(12, 21)[::-1]]
+#dealer_states = states
+#player_states = states
 # EV table
 t = PrettyTable(['EV'] + list(map(string_of_state, dealer_states)))
 for s in player_states:
@@ -202,3 +202,21 @@ if allow_split:
     print()
 
 print(f'Overal EV: {float(total_ev)}')
+
+# Step 6: Have a policy
+def policy(dc, pcs):
+    ds = state_of_card(dc)
+    s = (0, False)
+    for card in pcs:
+        s = transition(s, card)
+    if len(pcs) == 2 and pcs[0] == pcs[1] and pcs[0] == 8:
+        return 'P'
+    if len(pcs) == 2 and pcs[0] == pcs[1]:
+        if pcs[0] < 10 and splits[pcs[0]][ds]:
+            return 'P'
+    if len(pcs) == 2 and dev[s][ds] > ev2[s][ds]:
+        return 'D'
+    if actions[s][ds]:
+        return 'S'
+    else:
+        return 'H'
