@@ -65,32 +65,34 @@ for i in range(2,10)[::-1]:
     states += [(i+11, True), (i, False), (i, True)]
 states += [(12, True), (11, True), (10, True), (0, False)]
 
-# Step 1: Expected value when dealer hits till 17 or above
+# Step 1: Expected value when dealer hits till 17 or above, and player stays on s
 ev = {s : {ds : 0 for ds in states} for s in states}
 for s in states:
     for ds in states:
         if s[0] > 21:
             ev[s][ds] = -1
             continue
-        if ds[0] > 21:
-            ev[s][ds] = 1
-        elif ds[0] >= 17:
-            if ds == (21, True) and s == (21, True):
-                ev[s][ds] = 0
-            elif ds == (21, True):
-                ev[s][ds] = -1
-            elif s == (21, True):
-                ev[s][ds] = bj_val
-            elif ds[0] > s[0]:
-                ev[s][ds] = -1
-            elif ds[0] < s[0]:
-                ev[s][ds] = 1
-            else:
-                ev[s][ds] = 0
+
+        if ds == (21, True) and s == (21, True):
+            ev[s][ds] = 0
+        elif ds == (21, True):
+            ev[s][ds] = -1
+        elif s == (21, True):
+            ev[s][ds] = bj_val
         else:
-            for card in range(1, 14):
-                new_s = transition(ds, card)
-                ev[s][ds] += Fraction(1,13) * ev[s][new_s]
+            if ds[0] > 21:
+                ev[s][ds] = 1
+            elif ds[0] >= 17:
+                if ds[0] > s[0]:
+                    ev[s][ds] = -1
+                elif ds[0] < s[0]:
+                    ev[s][ds] = 1
+                else:
+                    ev[s][ds] = 0
+            else:
+                for card in range(1, 14):
+                    new_s = transition(ds, card)
+                    ev[s][ds] += Fraction(1,13) * ev[s][new_s]
 
 # Step 2: Doubles
 dev = {s : {ds : 0 for ds in states} for s in states}
