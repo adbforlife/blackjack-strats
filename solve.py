@@ -172,6 +172,13 @@ dealer_states = [(i, True) for i in range(2,12)[::-1]]
 player_states = [(i, False) for i in range(3,22)[::-1]] + [(i, True) for i in range(12, 21)[::-1]]
 #dealer_states = states
 #player_states = states
+# EV stand table
+t = PrettyTable(['EV stand'] + list(map(string_of_state, dealer_states)))
+for s in [(i, False) for i in range(16, 22)[::-1]]:
+    t.add_row([string_of_state(s)] + [round(float(ev[s][ds]), 3) for ds in dealer_states])
+print(t)
+print()
+
 # EV table
 t = PrettyTable(['EV'] + list(map(string_of_state, dealer_states)))
 for s in player_states:
@@ -211,10 +218,8 @@ def policy(dc, pcs):
     s = (0, False)
     for card in pcs:
         s = transition(s, card)
-    if len(pcs) == 2 and pcs[0] == pcs[1] and pcs[0] == 8:
-        return 'P'
     if len(pcs) == 2 and pcs[0] == pcs[1]:
-        if pcs[0] < 10 and splits[pcs[0]][ds]:
+        if pcs[0] < 10 and not splits[pcs[0]][ds]:
             return 'P'
     if len(pcs) == 2 and dev[s][ds] > ev2[s][ds]:
         return 'D'

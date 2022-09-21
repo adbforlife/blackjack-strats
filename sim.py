@@ -69,6 +69,7 @@ n = 0
 while 1:
     n += 1
     money += play(policy, randint(1, 13), randint(1, 13))
+    #money += play(policy, 1, 8)
     ev = money / n
     if n % 1000 == 0:
         print(' ' * 80, end="\r", flush=True)
