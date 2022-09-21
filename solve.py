@@ -164,7 +164,7 @@ def string_of_state(s):
     elif s[1] == 1 and s[0] >= 11:
         return f'{s[0]-10}/{s[0]}'
     elif s[1] == 1:
-        return '{' + str(s[0]) + '}'
+        return '(' + str(s[0]) + ')'
     else:
         return str(s[0])
 
