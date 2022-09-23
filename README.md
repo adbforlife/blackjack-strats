@@ -4,6 +4,7 @@ About +0.0006 EV for each game
 # Rules
 - Infinite decks, so at any point each element of {A, 2, 3, 4, 5, 6, 7, 8, 9, T, J, Q, K} has 1/13 chance to occur.
 - Blackjack payout is 1.5.
+- Dealer stands on soft 17.
 - Double or split after splits is allowed.
 - Late surrender is allowed (after dealer checks blackjack, player can choose to surrender and keep 0.5).
 
