@@ -90,9 +90,18 @@ for s in states:
                 else:
                     ev[s][ds] = 0
             else:
-                for card in range(1, 14):
+                if ds == (10, True):
+                    # Assume dealer bj is known before
+                    cards = range(2, 14)
+                elif ds == (11, True):
+                    # Assume dealer bj is known before
+                    cards = range(1, 10)
+                else:
+                    cards = range(1, 14)
+
+                for card in cards:
                     new_s = transition(ds, card)
-                    ev[s][ds] += Fraction(1,13) * ev[s][new_s]
+                    ev[s][ds] += Fraction(1, len(cards)) * ev[s][new_s]
 
 # Step 2: Doubles
 dev = {s : {ds : 0 for ds in states} for s in states}
@@ -151,8 +160,31 @@ for s in states:
 # Step 4: What is overall EV?
 total_ev = 0
 for i in range(1, 14):
-    ds = state_of_card(i)
-    total_ev += Fraction(1, 13) * ev2[(0, False)][ds]
+    for j in range(1, 14):
+        # i face up and j face down
+        for k in range(1, 14):
+            for l in range(1, 14):
+                k = min(10, k)
+                l = min(10, l)
+
+                ds1 = state_of_card(i)
+                ds2 = transition(ds1, j)
+                s1 = state_of_card(k)
+                s2 = transition(s1, l)
+                if ds2 == (21, True) and s2 == (21, True):
+                    pass
+                elif ds2 == (21, True):
+                    total_ev += Fraction(1, 13**4) * (-1)
+                elif s2 == (21, True):
+                    total_ev += Fraction(1, 13**4) * bj_val
+                else:
+                    if allow_split and k == l and splits[k][ds1] == 0:
+                        total_ev += 2 * Fraction(1, 13**4) * ev2[s1][ds1]
+                    else:
+                        if allow_double:
+                            total_ev += Fraction(1, 13**4) * ev2[s2][ds1]
+                        else:
+                            total_ev += Fraction(1, 13**4) * max(dev[s2][ds1], ev2[s2][ds1])
 
 # Step 5: Display what we found
 from prettytable import PrettyTable

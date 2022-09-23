@@ -36,10 +36,18 @@ def compare(dcs, pcs):
         return -1
 
 # policy takes in a tuple of (dealer_card, player_cards) and output one of ('S', 'H', 'D', 'P')
-def play(policy, dc, pc):
+def play(policy, dcs, pcs):
     bet = 1
-    dcs = [dc]
-    pcs = [pc]
+
+    vd = value(dcs[:2])
+    vp = value(pcs[:2])
+    if vd == 21 and vp == 21:
+        return 0
+    elif vd == 21:
+        return -1
+    elif vp == 21:
+        return bj_val
+
     while 1:
         action = policy(dcs[0], pcs)
         if action == 'S':
@@ -51,25 +59,27 @@ def play(policy, dc, pc):
         elif action == 'P':
             assert(len(pcs) == 2)
             assert((pcs[0] >= 10 and pcs[1] >= 10) or (pcs[0] == pcs[1]))
-            return play(policy, dc, pc) + play(policy, dc, pc)
+            return play(policy, dcs, pcs[:1]) + play(policy, dcs, pcs[:1])
         elif action == 'D':
             assert(len(pcs) == 2)
             bet *= 2
             pcs.append(randint(1, 13))
             break
-    # dealer hits
-    while value(dcs) < 17:
-        dcs.append(randint(1, 13))
+
     # compare hands
     return compare(dcs, pcs) * bet
+
 
 from solve import policy
 money = 0
 n = 0
 while 1:
     n += 1
-    money += play(policy, randint(1, 13), randint(1, 13))
-    #money += play(policy, 1, 8)
+    dcs = []
+    while value(dcs) < 17:
+        dcs.append(randint(1, 13))
+    pcs = [randint(1, 13), randint(1, 13)]
+    money += play(policy, dcs, pcs)
     ev = money / n
     if n % 1000 == 0:
         print(' ' * 80, end="\r", flush=True)
