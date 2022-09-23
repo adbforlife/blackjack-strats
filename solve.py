@@ -66,7 +66,7 @@ for i in range(2,10)[::-1]:
 states += [(12, True), (11, True), (10, True), (0, False)]
 
 # Step 1: Expected value when dealer hits till 17 or above, and player stays on s
-ev = {s : {ds : 0 for ds in states} for s in states}
+ev = {s : {ds : -1000 for ds in states} for s in states}
 for s in states:
     for ds in states:
         if s[0] > 21:
@@ -99,8 +99,10 @@ for s in states:
                 else:
                     cards = range(1, 14)
 
+                ev[s][ds] = 0
                 for card in cards:
                     new_s = transition(ds, card)
+                    assert(ev[s][new_s] != -1000)
                     ev[s][ds] += Fraction(1, len(cards)) * ev[s][new_s]
 
 # Step 2: Doubles

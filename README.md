@@ -1,5 +1,5 @@
-# Experiment result:
-About +0.0006 EV for each game
+# Experiment result
+More than +0.0005 EV for the player each game, run over 50 million games.
 
 # Rules
 - Infinite decks, so at any point each element of {A, 2, 3, 4, 5, 6, 7, 8, 9, T, J, Q, K} has 1/13 chance to occur.
