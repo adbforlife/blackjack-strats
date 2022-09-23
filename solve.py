@@ -223,7 +223,9 @@ t = PrettyTable(['Action'] + list(map(string_of_state, dealer_states)))
 for s in player_states:
     vals = []
     for ds in dealer_states:
-        if allow_double and dev[s][ds] > ev2[s][ds]:
+        if max(dev[s][ds], ev2[s][ds]) < -0.5:
+            vals.append('R')
+        elif allow_double and dev[s][ds] > ev2[s][ds]:
             vals.append('D')
         elif actions[s][ds]:
             vals.append('S')
@@ -253,6 +255,8 @@ def policy(dc, pcs):
     if len(pcs) == 2 and pcs[0] == pcs[1]:
         if pcs[0] < 10 and not splits[pcs[0]][ds]:
             return 'P'
+    if len(pcs) == 2 and max(dev[s][ds], ev2[s][ds]) < -0.5:
+        return 'R'
     if len(pcs) == 2 and dev[s][ds] > ev2[s][ds]:
         return 'D'
     if actions[s][ds]:

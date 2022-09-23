@@ -35,7 +35,7 @@ def compare(dcs, pcs):
         assert(vp < vd)
         return -1
 
-# policy takes in a tuple of (dealer_card, player_cards) and output one of ('S', 'H', 'D', 'P')
+# policy takes in a tuple of (dealer_card, player_cards) and output one of ('S', 'H', 'D', 'P', 'R')
 def play(policy, dcs, pcs):
     bet = 1
 
@@ -65,6 +65,9 @@ def play(policy, dcs, pcs):
             bet *= 2
             pcs.append(randint(1, 13))
             break
+        elif action == 'R':
+            assert(len(pcs) == 2)
+            return -0.5 * bet
 
     # compare hands
     return compare(dcs, pcs) * bet
