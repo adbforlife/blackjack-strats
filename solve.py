@@ -244,8 +244,6 @@ if allow_split:
     print(t)
     print()
 
-print(f'Overal EV: {float(total_ev)}')
-
 # Step 6: Have a policy
 def policy(dc, pcs):
     ds = state_of_card(dc)
